@@ -205,7 +205,7 @@ public class FloatView extends FrameLayout  {
 //        });
 
         mTimer = new Timer();
-        hide();
+//        hide();
     }
 
     public void showMenu() {

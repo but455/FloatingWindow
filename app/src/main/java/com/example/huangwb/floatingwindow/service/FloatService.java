@@ -16,7 +16,10 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import com.example.huangwb.floatingwindow.FloatActivity;
 import com.example.huangwb.floatingwindow.FloatView;
+import com.example.huangwb.floatingwindow.Miui;
+import com.example.huangwb.floatingwindow.PermissionListener;
 
 /**
  * Created by Ranger Liao
@@ -69,19 +72,6 @@ public class FloatService extends Service implements View.OnClickListener {
         int screenHeight = dm.heightPixels;
 
 
-        // 设置悬浮窗类型
-        // 小米MODEL: MI 4LTE, 魅族：MX5
-//        if (strPhoneModel.startsWith("mi") || strPhoneModel.startsWith("mx") || strPhoneModel.startsWith("pro 6")) {
-//            wmParams.type = WindowManager.LayoutParams.TYPE_TOAST;
-//        } else {
-//          //  wmParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
-//            wmParams.type = WindowManager.LayoutParams.TYPE_TOAST;
-//        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            wmParams.type = WindowManager.LayoutParams.TYPE_TOAST;
-        } else {
-            wmParams.type = WindowManager.LayoutParams.TYPE_PHONE;
-        }
         // 设置背景透明
         wmParams.format = PixelFormat.RGBA_8888;
 
@@ -97,14 +87,62 @@ public class FloatService extends Service implements View.OnClickListener {
         wmParams.width = WindowManager.LayoutParams.WRAP_CONTENT;
         wmParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
+            req();
+        } else if (Miui.rom()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                req();
+            } else {
+                wmParams.type = WindowManager.LayoutParams.TYPE_PHONE;
+                Miui.req(getApplicationContext(), new PermissionListener() {
+                    @Override
+                    public void onSuccess() {
+                        addFloatView();
+                    }
+
+                    @Override
+                    public void onFail() {
+                    }
+                });
+            }
+        } else {
+            try {
+                wmParams.type = WindowManager.LayoutParams.TYPE_TOAST;
+                addFloatView();
+            } catch (Exception e) {
+                wm.removeView(floatView);
+                req();
+            }
+        }
 
 
+    }
+
+    private void addFloatView() {
         floatView.setParams(wmParams);
-        // show float view
         wm.addView(floatView, wmParams);
         floatView.show();
     }
 
+    private void req() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            wmParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+        } else {
+            wmParams.type = WindowManager.LayoutParams.TYPE_PHONE;
+        }
+        FloatActivity.request(getApplicationContext(), new PermissionListener() {
+            @Override
+            public void onSuccess() {
+                addFloatView();
+            }
+
+            @Override
+            public void onFail() {
+
+            }
+        });
+
+    }
     public  void removeFloatView() {
         if (floatView != null) {
             wm.removeView(floatView);
@@ -146,6 +184,7 @@ public class FloatService extends Service implements View.OnClickListener {
             return FloatService.this;
         }
     }
+
 
 
 

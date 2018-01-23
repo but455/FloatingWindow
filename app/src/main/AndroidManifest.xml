@@ -21,6 +21,11 @@
             android:name=".service.FloatService"
             android:enabled="true"
             android:exported="true"></service>
+        <activity
+            android:name=".FloatActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:launchMode="standard"
+            android:windowSoftInputMode="stateHidden|stateAlwaysHidden"/>
     </application>
 
 </manifest>
